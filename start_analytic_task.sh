@@ -16,5 +16,5 @@ hdfs dfs -mkdir -p /dbproject
 hdfs dfs -put kindle_reviews_update.csv /dbproject
 hdfs dfs -put meta_kindle_store_update.json /dbproject
 
-python sample.py
-python sample2.py
+python tf-idf.py
+python pearson_correlation.py

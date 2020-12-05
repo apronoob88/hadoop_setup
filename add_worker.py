@@ -14,7 +14,7 @@ session_token = input("Enter your aws_session_token: ")
 
 cluster_name = input("please enter the name of you cluster: ")
 key_name = input("please enter the key pair name(without .pem) to lauch the cluster: ")
-number_to_add = int(input("please enter the number of nodes to add (we strongly encourage you to add one at a time): "))
+number_to_add = int(input("please enter the number of nodes to add \n We strongly encourage you not to add until more than 2 datanodes for the automation (for stability purpose): "))
 
 os.environ['AWS_ACCESS_KEY_ID'] = key
 os.environ['AWS_SECRET_ACCESS_KEY'] = secrete_key

@@ -31,7 +31,8 @@ for security_group_info in available_security_groups_info:
     existing_security_group_names.append(security_group_info['GroupName'])
 
 
-# if there is already security group named 'flintrock' , edit its inbound rules
+# if there is already security group named 'flintrock' , try to delete the current one and create a new one
+# if the security group is been used by some other instances, levage its accessibility
 if 'flintrock' in existing_security_group_names:
     print('Security Group "flintrock" already exists, configuring its inbound rule')
     flintrock_sg_id = get_flintrock_sg_id()
@@ -98,7 +99,6 @@ else:
 os.system("chmod 400 {}.pem".format(key_name))
 
 
-
 session = boto3.session.Session(
         aws_access_key_id=key,
         aws_secret_access_key=secrete_key,
@@ -117,7 +117,7 @@ instances = ec2.create_instances(
         KeyName=key_name
 )
 
-print("Please wait the flintrock manager instance to be created.....")
+print("Please wait the for flintrock manager instance to be created.....")
 flintrock_manager = instances[0]
 
 flintrock_manager.wait_until_running()
@@ -128,9 +128,7 @@ for i in range(30):
 	time.sleep(1)
 
 flintrock_manager_public_ip = flintrock_manager.public_ip_address
-print('public_ip: ', flintrock_manager_public_ip)
-
-
+print('public_ip of flintrock manager: ', flintrock_manager_public_ip)
 
 ec2_key = key_name +".pem"
 
@@ -138,8 +136,8 @@ pkey = paramiko.RSAKey.from_private_key_file(ec2_key)
 ssh_client = paramiko.SSHClient()
 ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-cluster_name = input("Enter your custom cluster name (one which is not running currently): ")
-num_cluster = int(input("Enter the number(Integer) of datanode in your cluster : "))
+cluster_name = input("Enter your custom cluster name (one which is not a running currently): ")
+num_cluster = int(input("Enter the number(Integer) of datanode in your cluster \nIt is highly encouraged to keep the number below 2 for current version of automation script: "))
 # Connect/ssh to mongodb instance
 
 flintrock_manager.create_tags(Tags=[{'Key':'Name', 'Value':f'flintrock_manager_{cluster_name}'}])
@@ -241,19 +239,19 @@ try:
     # SCPClient
     scp = SCPClient(ssh_client.get_transport())
 
-    print("Copying sample.py file from local to master node instance")
-    localpath = './sample.py'
-    remotepath = '~/sample.py'
+    print("Copying tf-idf.py file from local to master node instance")
+    localpath = './tf-idf.py'
+    remotepath = '~/tf-idf.py'
     scp.put(localpath, remotepath)
     scp.get(remotepath)
-    print("sample2.py transferred!")
+    print("tf-idf.py transferred!")
 
-    print("Copying sample2.py file from local to master node instance")
-    localpath = './sample2.py'
-    remotepath = '~/sample2.py'
+    print("Copying pearson_correlation.py file from local to master node instance")
+    localpath = './pearson_correlation.py'
+    remotepath = '~/pearson_correlation.py'
     scp.put(localpath, remotepath)
     scp.get(remotepath)
-    print("sample2.py transferred!")
+    print("pearson_correlation.py transferred!")
 
     print("Copying start_analytic_task.sh file from local to master node instance")
     localpath = './start_analytic_task.sh'
