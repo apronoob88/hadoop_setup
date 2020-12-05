@@ -138,8 +138,9 @@ flintrock_manager.load()
 for i in range(30):
 	time.sleep(1)
 
+flintrock_manager.create_tags(Tags=[{'Key':'Name', 'Value':'flintrock_manager'}])
 flintrock_manager_public_ip = flintrock_manager.public_ip_address
-print('public_ip: ', flintrock_manager)
+print('public_ip: ', flintrock_manager_public_ip)
 
 
 
