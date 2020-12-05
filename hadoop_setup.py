@@ -18,19 +18,8 @@ ec2_client = boto3.client('ec2',
 response = ec2_client.describe_vpcs()
 vpc_id = response.get('Vpcs', [{}])[0].get('VpcId', '')
 
-def del_flintrock_sg():
-    flintrock_sg_id = ''
-    for security_group_info in available_security_groups_info:
-        #print(security_group_info['GroupName'])
-        if security_group_info['GroupName'] == 'flintrock':
-            flintrock_sg_id = security_group_info['GroupId']
-    try:
-        response = ec2_client.delete_security_group(GroupId=flintrock_sg_id)
-        print('Security Group Deleted')
-    except ClientError as e:
-        print(e)
 
-def get_flintrock_sg_id():
+def get_flintrock_sg_id():   # sg --> short form of security group
     for security_group_info in available_security_groups_info:
         if security_group_info['GroupName'] == 'flintrock':
             flintrock_sg_id = security_group_info['GroupId']
@@ -138,7 +127,6 @@ flintrock_manager.load()
 for i in range(30):
 	time.sleep(1)
 
-flintrock_manager.create_tags(Tags=[{'Key':'Name', 'Value':'flintrock_manager'}])
 flintrock_manager_public_ip = flintrock_manager.public_ip_address
 print('public_ip: ', flintrock_manager_public_ip)
 
@@ -153,6 +141,9 @@ ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 cluster_name = input("Enter your custom cluster name (one which is not running currently): ")
 num_cluster = int(input("Enter the number(Integer) of datanode in your cluster : "))
 # Connect/ssh to mongodb instance
+
+flintrock_manager.create_tags(Tags=[{'Key':'Name', 'Value':f'flintrock_manager_{cluster_name}'}])
+
 try:
     # Here 'ubuntu' is user name and 'instance_ip' is public IP of EC2
     ssh_client.connect(hostname=flintrock_manager_public_ip, username="ec2-user", pkey=pkey)
@@ -161,19 +152,34 @@ try:
     print("Copying files from local to flintrock manager instance...")
     scp = SCPClient(ssh_client.get_transport())
 
-    print("Copying flintrock_setup.sh file from local to MongoDB instance")
+    print("Copying flintrock_setup.sh file from local to flintrock manager instance")
     localpath = './flintrock_setup.sh'
     remotepath = '~/flintrock_setup.sh'
     scp.put(localpath, remotepath)
     scp.get(remotepath)
     print("flintrock_setup.sh transferred!")
 
-    print("Copying start_cluster.sh file from local to MongoDB instance")
+    print("Copying start_cluster.sh file from local to flintrock manager instance")
     localpath = './start_cluster.py'
     remotepath = '~/start_cluster.py'
     scp.put(localpath, remotepath)
     scp.get(remotepath)
     print("start_cluster.sh transferred!")
+
+    print("Copying add_node.py file from local to flintrock manager instance")
+    localpath = './add_node.py'
+    remotepath = '~/add_node.py'
+    scp.put(localpath, remotepath)
+    scp.get(remotepath)
+    print("add_node.py transferred!") 
+
+
+    print("Copying remove_node.py file from local to flintrock manager instance")
+    localpath = './remove_node.py'
+    remotepath = '~/remove_node.py'
+    scp.put(localpath, remotepath)
+    scp.get(remotepath)
+    print("remove_node.py transferred!") 
     scp.close()
 
     #copy ec2-key over to flintrock manager instance
@@ -242,14 +248,14 @@ try:
     scp.get(remotepath)
     print("sample2.py transferred!")
 
-    print("Copying sample2.py file from local to MongoDB instance")
+    print("Copying sample2.py file from local to master node instance")
     localpath = './sample2.py'
     remotepath = '~/sample2.py'
     scp.put(localpath, remotepath)
     scp.get(remotepath)
     print("sample2.py transferred!")
 
-    print("Copying start_analytic_task.sh file from local to MongoDB instance")
+    print("Copying start_analytic_task.sh file from local to master node instance")
     localpath = './start_analytic_task.sh'
     remotepath = '~/start_analytic_task.sh'
     scp.put(localpath, remotepath)
